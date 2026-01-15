@@ -171,8 +171,8 @@ map('<Alt-u>', 'ya');   // Yank Link URL (alt)
 
 // --- Navigation & Scrolling ---
 map('H', 'S');          // History Back
-map('L', 'D');          // History Forward (was R)
-map('R', 'L');          // R now inherits the *default* regional-hints
+map('R', 'L');          // R inherits the default regional-hints from L
+map('L', 'D');          // History Forward
 
 // --- Tab Switching ---
 unmap('J');
