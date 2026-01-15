@@ -173,8 +173,12 @@ map('<Alt-u>', 'ya');   // Yank Link URL (alt)
 map('H', 'S');          // History Back
 map('L', 'D');          // History Forward (was R)
 map('R', 'L');          // R now inherits the *default* regional-hints
-map('K', ']]');         // Next Page
-map('J', '[[');         // Prev Page (Vim-style)
+
+// --- Tab Switching ---
+unmap('J');
+unmap('K');
+mapkey('J', 'Previous tab (left)', () => RUNTIME('previousTab'));
+mapkey('K', 'Next tab (right)', () => RUNTIME('nextTab'));
 
 mapkey('d', 'Scroll page down', () => Normal.scroll("pageDown"));
 mapkey('u', 'Scroll page up',   () => Normal.scroll("pageUp"));
