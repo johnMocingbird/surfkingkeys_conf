@@ -196,7 +196,7 @@ mapkey('p', "Open clipboard URL in current tab", () => { Clipboard.read(res => w
 map('P', 'cc');         // Open clipboard URL in new tab
 
 // --- Tabs ---
-map('b', 'T');          // Choose a buffer/tab
+mapkey('b', 'Open bookmarks', () => Front.openOmnibar({ type: 'Bookmarks' }));
 map('D', 'x');          // Close current tab
 map('>', '>>');         // Move Tab Right
 map('<', '<<');         // Move Tab Left
@@ -300,6 +300,12 @@ if (ADMIN_RE.test(adminHost)) {
   mapkey(`${L}r`, '🛠  Admin → Roles',         () => g('roles'));
   mapkey(`${L}o`, '🏢  Admin → Organizations', () => g('organizations'));
 
+  // Import pages
+  mapkey(`${L}il`, '📥  Admin → Imported Licenses',      () => g('imported_state_licenses'));
+  mapkey(`${L}ic`, '📥  Admin → Imported Certificates',  () => g('imported_certificates'));
+  mapkey(`${L}iu`, '📥  Admin → Imported Users',         () => g('imported_users'));
+  mapkey(`${L}im`, '📥  Admin → Medallion Imports',      () => g('medallion_imports'));
+
   if (location.pathname === '/admin/users') {
     mapkey(`${L}f`, '🔎  Admin → Filter User', () => {
       Front.showPrompt('Username', (username) => {
@@ -308,6 +314,39 @@ if (ADMIN_RE.test(adminHost)) {
         url.searchParams.set('commit', 'Filter');
         url.searchParams.set('order', 'id_desc');
         window.open(url.toString(), '_self');
+      });
+    });
+
+    // User type filters
+    const filterByType = (type) => {
+      window.open(`${BASE}/admin/users?q%5Btype_eq%5D=${type}&commit=Filter&order=id_desc`, '_self');
+    };
+
+    mapkey(`${L}fp`, '👨‍⚕️ Filter: Physician',         () => filterByType('Physician'));
+    mapkey(`${L}fa`, '👨‍⚕️ Filter: PhysicianAssistant', () => filterByType('PhysicianAssistant'));
+    mapkey(`${L}fn`, '👨‍⚕️ Filter: NursePractitioner',  () => filterByType('NursePractitioner'));
+    mapkey(`${L}fr`, '👨‍⚕️ Filter: RegisteredNurse',    () => filterByType('RegisteredNurse'));
+    mapkey(`${L}fd`, '👨‍⚕️ Filter: DoctorOfOsteopathy', () => filterByType('DoctorOfOsteopathy'));
+    mapkey(`${L}ft`, '👨‍⚕️ Filter: PhysicalTherapist',  () => filterByType('PhysicalTherapist'));
+    mapkey(`${L}fs`, '👨‍⚕️ Filter: SocialWorker',       () => filterByType('SocialWorker'));
+    mapkey(`${L}fm`, '👨‍⚕️ Filter: Administrator',      () => filterByType('Administrator'));
+    mapkey(`${L}fc`, '🔄 Clear filters', () => window.open(`${BASE}/admin/users?order=id_desc`, '_self'));
+
+    // Test account selector
+    mapkey(`${L}e`, '📧 Select test account', () => {
+      const testAccounts = [
+        { email: 'test.physician@mocingbird.com', type: 'Physician' },
+        { email: 'test.pa@mocingbird.com', type: 'PA' },
+        { email: 'test.nurse@mocingbird.com', type: 'Nurse' },
+        { email: 'nikita@mocingbird.com', type: 'Admin' },
+      ];
+
+      Front.openOmnibar({
+        type: "UserDefined",
+        extra: testAccounts.map(acc => ({
+          title: `${acc.type}: ${acc.email}`,
+          url: `${BASE}/admin/users?q%5Bemail_cont%5D=${encodeURIComponent(acc.email)}&commit=Filter&order=id_desc`
+        }))
       });
     });
   }
@@ -371,8 +410,11 @@ mapkey(`${L}G`, '🐙 Go to GitHub', () => window.open('https://github.com', '_s
 mapkey(`${L}I`, '🚀 Jump to Shortcut', () => window.open('https://app.shortcut.com/mymoc/iterations', '_self'));
 mapkey(`${L}M`, '📧 Gmail Inbox', () => window.open('https://mail.google.com/mail/u/0/#inbox', '_self'));
 mapkey(`${L}S`, '🛍 Shopify admin', () => window.open('https://admin.shopify.com/', '_self'));
-// 
 mapkey(`${L}W`, 'whatsapp', () => window.open('https://web.whatsapp.com/', '_self'));
+
+// Heroku
+mapkey(`${L}hs`, '🚀 Heroku Staging', () => window.open('https://dashboard.heroku.com/apps/mocingbird-staging', '_self'));
+mapkey(`${L}hp`, '🚀 Heroku Production', () => window.open('https://dashboard.heroku.com/apps/mocingbird-production', '_self'));
 mapkey(`ap`, 'Mocingbird Admin (Production)', () => window.open('https://admin.mocingbird.com/', '_self'));
 mapkey(`ad`, 'Mocingbird Admin (Development)', () => window.open('http://d-admin.mocingbird.com:3000/', '_self'));
 mapkey(`as`, 'Mocingbird Admin (Staging)', () => window.open('https://s-admin.mocingbird.com/', '_self'));
