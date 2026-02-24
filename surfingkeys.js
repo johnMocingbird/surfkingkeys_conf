@@ -299,6 +299,23 @@ if (ADMIN_RE.test(adminHost)) {
   mapkey(`${L}l`, '📄  Admin → Licenses',      () => g('state_licenses'));
   mapkey(`${L}r`, '🛠  Admin → Roles',         () => g('roles'));
   mapkey(`${L}o`, '🏢  Admin → Organizations', () => g('organizations'));
+  mapkey(`${L}f`, '📁  Admin → User Files',    () => g('user_files'));
+
+  // Nav bar fuzzy finder — dynamically reads all nav links from the page
+  mapkey(`${L}n`, '📋 Admin Nav (fuzzy finder)', () => {
+    const selectors = ['#tabs a', '#header li a', 'nav a', '.header a'];
+    let links = [];
+    for (const sel of selectors) {
+      links = Array.from(document.querySelectorAll(sel))
+        .filter(a => a.href && a.textContent.trim());
+      if (links.length > 5) break;
+    }
+    if (!links.length) { Front.showPopup('❗ No nav links found'); return; }
+    Front.openOmnibar({
+      type: "UserDefined",
+      extra: links.map(a => ({ title: a.textContent.trim(), url: a.href }))
+    });
+  });
 
   // Import pages
   mapkey(`${L}il`, '📥  Admin → Imported Licenses',      () => g('imported_state_licenses'));
