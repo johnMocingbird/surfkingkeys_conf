@@ -282,9 +282,9 @@ if (isSafari) {
 mapkey(`${L},`, 'Choose a tab (fuzzy finder)', () => Front.openOmnibar({ type: 'Tabs' }));
 
 /* ----- app.shortcut.com ----- */
-if (/^app\.shortcut\.com$/.test(location.hostname) && location.pathname.startsWith('/mymoc/')) {
-  mapkey(`${L}B`, '🌿 Copy branch name', () => copyText(FIELD_BRANCH,  'Branch name copied!'));
-  mapkey(`${L}C`, '⌘ Copy checkout cmd', () => copyText(FIELD_CMD,     'Checkout cmd copied!'));
+if (/^app\.shortcut\.com$/.test(location.hostname) && /^\/mymoc\/story\/\d+/.test(location.pathname)) {
+  mapkey(`${L}b`, '🌿 Copy branch name', () => copyText(FIELD_BRANCH,  'Branch name copied!'));
+  mapkey(`${L}c`, '⌘ Copy checkout cmd', () => copyText(FIELD_CMD,     'Checkout cmd copied!'));
 }
 
 /* ----- Mocingbird Admin ----- */
@@ -349,6 +349,13 @@ if (ADMIN_RE.test(adminHost)) {
     mapkey(`${L}fm`, '👨‍⚕️ Filter: Administrator',      () => filterByType('Administrator'));
     mapkey(`${L}fc`, '🔄 Clear filters', () => window.open(`${BASE}/admin/users?order=id_desc`, '_self'));
 
+    mapkey(`${L}fe`, '📧 Filter by email (clipboard)', () => {
+      Clipboard.read(res => {
+        const email = res.data.trim();
+        window.open(`${BASE}/admin/users?q%5Bemail_cont%5D=${encodeURIComponent(email)}&commit=Filter&order=id_desc`, '_self');
+      });
+    });
+
     // Test account selector
     mapkey(`${L}e`, '📧 Select test account', () => {
       const testAccounts = [
@@ -373,13 +380,16 @@ if (ADMIN_RE.test(adminHost)) {
 const appHost = location.hostname;
 const APP_RE = /^(localhost|127\.0\.0\.1\.nip\.io|s-app\.mocingbird\.com|app\.mocingbird\.com)$/;
 if (APP_RE.test(appHost)) {
-  mapkey(`${L}s`, '🔐  Toggle SuperAdmin', () => {
-    const key = 'ngx-webstorage|issuperadmin';
-    const current = localStorage.getItem(key);
-    const newValue = current === '"true"' ? '"false"' : '"true"';
-    localStorage.setItem(key, newValue);
-    const status = newValue === '"true"' ? 'ENABLED' : 'DISABLED';
-    Front.showPopup(`🔐 SuperAdmin: ${status}`);
+  mapkey(`${L}s`, '👑  Toggle SuperAdmin', () => {
+    const url = new URL(location.href);
+    if (url.searchParams.has('as')) {
+      url.searchParams.delete('as');
+      Front.showPopup('🔐 SuperAdmin: DISABLED');
+    } else {
+      url.searchParams.set('as', 'superadmin');
+      Front.showPopup('🔐 SuperAdmin: ENABLED');
+    }
+    window.open(url.toString(), '_self');
   });
 }
 
@@ -393,6 +403,51 @@ mapkey(`${L}f`, 'Go to Front-end repo', () => window.open('https://github.com/My
 mapkey(`${L}b`, 'Go to Backend repo', () => window.open('https://github.com/MyMOC/mymoc', '_self'), GITHUB);
 mapkey(`${L}m`, 'Go to Mobile repo', () => window.open('https://github.com/MyMOC/mobilemoc', '_self'), GITHUB);
 
+/* ----- github.com /compare (PR creation) ----- */
+if (/github\.com/.test(location.hostname) && location.pathname.includes('/compare')) {
+  const compareBase = location.pathname.match(/^(\/[^/]+\/[^/]+)\/compare/)[1];
+  const compareSpec = location.pathname.replace(`${compareBase}/compare`, '').replace(/^\//, '');
+
+  function parseCompare() {
+    if (!compareSpec) return { base: '', head: '' };
+    const parts = compareSpec.split('...');
+    return { base: parts[0] || '', head: parts[1] || '' };
+  }
+  function goCompare(base, head) {
+    let url = `${location.origin}${compareBase}/compare`;
+    if (base && head) url += `/${base}...${head}`;
+    else if (base) url += `/${base}`;
+    window.open(url, '_self');
+  }
+
+  mapkey(`${L}td`, '📅 Base → today cycle branch', () => {
+    const d = new Date();
+    const branch = `cycle-${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`;
+    const { head } = parseCompare();
+    goCompare(branch, head);
+  });
+
+  mapkey(`${L}s`, '🔀 Base → staging', () => {
+    const { head } = parseCompare();
+    goCompare('staging', head);
+  });
+
+  mapkey(`${L}p`, '📋 Head → clipboard', () => {
+    Clipboard.read(res => {
+      const { base } = parseCompare();
+      goCompare(base, res.data.trim());
+    });
+  });
+}
+
+/* ----- github.com /pulls (PR list) ----- */
+if (/github\.com/.test(location.hostname) && /^\/MyMOC\/(front-end|mymoc|mobilemoc)\/pulls/.test(location.pathname)) {
+  mapkey(`${L}n`, '🆕 New pull request', () => {
+    const repo = location.pathname.match(/^(\/[^/]+\/[^/]+)/)[1];
+    window.open(`${location.origin}${repo}/compare`, '_self');
+  });
+}
+
 /* ----- admin.shopify.com ----- */
 const SHOPIFY = {domain: /admin\.shopify\.com/};
 mapkey(`${L}b`, 'Bookings', () => goShopify('https://admin.shopify.com/store/k3rgpa-ht/apps/izyrent/bookings'), SHOPIFY);
@@ -402,6 +457,27 @@ mapkey(`${L}o`, 'Orders', () => goShopify('https://admin.shopify.com/store/k3rgp
 mapkey(`${L}d`, 'Draft Orders', () => goShopify('https://admin.shopify.com/store/k3rgpa-ht/draft_orders?selectedView=all'), SHOPIFY);
 mapkey(`${L}no`, 'New Orders', () => goShopify('https://admin.shopify.com/store/k3rgpa-ht/orders?status=open'), SHOPIFY);
 mapkey(`${L}i`, 'Izzy Rent', () => goShopify('https://admin.shopify.com/store/k3rgpa-ht/apps/izyrent'), SHOPIFY);
+mapkey(`${L}p`, '🔍 Search order from clipboard', () => {
+  Clipboard.read(async (res) => {
+    const text = res.data.trim();
+    const match = text.match(/^#?(\d+)$/);
+    if (!match) {
+      Front.showPopup('❗ Clipboard is not an order number (e.g. #1225)');
+      return;
+    }
+    const query = `#${match[1]}`;
+    // Click the search trigger to open it
+    const trigger = document.querySelector('button[aria-label*="earch"], .Polaris-TopBar__SearchField, [data-polaris-topbar] input');
+    if (trigger) trigger.click();
+    // Wait for search input, then fill it
+    const input = await waitFor('input[type="search"], input[placeholder*="earch"]');
+    if (!input) { Front.showPopup('❗ Search input not found'); return; }
+    input.focus();
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+    setter.call(input, query);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+}, SHOPIFY);
 
 /* ----- youtube.com ----- */
 if (/\.youtube\.com$/.test(location.hostname)) {
