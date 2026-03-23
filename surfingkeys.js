@@ -185,7 +185,7 @@ mapkey('u', 'Scroll page up',   () => Normal.scroll("pageUp"));
 mapkey("<Ctrl-d>", "Scroll down", () => { Normal.scroll("pageDown"); });
 mapkey("<Ctrl-u>", "Scroll up", () => { Normal.scroll("pageUp"); });
 map('<Ctrl-b>', 'U');   // scroll full page up
-mapkey('^', '#scroll-leftmost', 'Normal.scroll("leftmost")', {repeatIgnore: true});
+mapkey('0', 'Scroll leftmost', () => Normal.scroll("leftmost"), {repeatIgnore: true});
 
 // --- URL / OmniBar ---
 map('o', 'go');         // Open a URL in current tab
