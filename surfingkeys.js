@@ -133,7 +133,7 @@ addSearchAlias('y', 'yt', 'https://invidious.snopyta.org/search?q=', 's');
 // --- Default overrides ---
 unmap('R');          // drop old history-forward override for remapping
 unmap('ge');         // drop default “Go Extension” shortcut
-unmap('^');          // drop default scroll-leftmost for remapping
+unmap('^');          // drop default scroll-leftmost
 unmap('e');          // edit url
 // --- Proxy ---
 unmap('spa');
@@ -185,7 +185,7 @@ mapkey('u', 'Scroll page up',   () => Normal.scroll("pageUp"));
 mapkey("<Ctrl-d>", "Scroll down", () => { Normal.scroll("pageDown"); });
 mapkey("<Ctrl-u>", "Scroll up", () => { Normal.scroll("pageUp"); });
 map('<Ctrl-b>', 'U');   // scroll full page up
-mapkey('0', 'Scroll leftmost', () => Normal.scroll("leftmost"), {repeatIgnore: true});
+map('^', '0');         // ^ acts like 0 (scroll leftmost)
 
 // --- URL / OmniBar ---
 map('o', 'go');         // Open a URL in current tab
